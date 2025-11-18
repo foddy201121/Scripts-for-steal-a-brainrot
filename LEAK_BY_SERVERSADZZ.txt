@@ -1,0 +1,402 @@
+--// Script GUI - Hyper Tools com Desync, Inf JUMP e Floatwalk //--
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HyperToolsGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game.CoreGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BackgroundTransparency = 0.2
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.4, 0, 0.25, 0)
+MainFrame.Size = UDim2.new(0, 200, 0, 300) -- Mantido tamanho original
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+-- Título "Hyper Tools"
+local Title = Instance.new("TextLabel")
+Title.Parent = MainFrame
+Title.Name = "Title"
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 0, 0, 10)
+Title.Size = UDim2.new(1, 0, 0, 20)
+Title.Font = Enum.Font.Arcade
+Title.Text = "Hyper Tools"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+Title.TextStrokeTransparency = 0.5
+Title.TextXAlignment = Enum.TextXAlignment.Center
+
+-- Arrastável
+local Drag = Instance.new("Frame")
+Drag.Parent = MainFrame
+Drag.BackgroundTransparency = 1
+Drag.Size = UDim2.new(1, 0, 0, 20)
+Drag.Position = UDim2.new(0, 0, 0, 0)
+
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local dragging = false
+local dragInput, dragStart, startPos
+
+local function update(input)
+	local delta = input.Position - dragStart
+	MainFrame.Position = UDim2.new(
+		startPos.X.Scale, startPos.X.Offset + delta.X,
+		startPos.Y.Scale, startPos.Y.Offset + delta.Y
+	)
+end
+
+Drag.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = MainFrame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+Drag.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		update(input)
+	end
+end)
+
+-- Serviços
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+-- Cores padronizadas
+local NORMAL_COLOR = Color3.fromRGB(255,43,255)
+local ACTIVE_COLOR = Color3.fromRGB(80,0,120)
+
+-- Função de tween para cor suave
+local function setButtonColor(button, color)
+	local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService:Create(button, tweenInfo, {BackgroundColor3 = color}):Play()
+end
+
+--================== DESYNC ==================--
+local DesyncButton = Instance.new("TextButton")
+DesyncButton.Parent = MainFrame
+DesyncButton.BackgroundColor3 = NORMAL_COLOR
+DesyncButton.Position = UDim2.new(0.05, 0, 0.12, 0)
+DesyncButton.Size = UDim2.new(0.9, 0, 0, 40)
+DesyncButton.Font = Enum.Font.Arcade
+DesyncButton.Text = "Desync"
+DesyncButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+DesyncButton.TextScaled = false
+DesyncButton.TextSize = 18
+DesyncButton.TextStrokeTransparency = 0.5
+
+local ButtonCorner1 = Instance.new("UICorner")
+ButtonCorner1.CornerRadius = UDim.new(0, 10)
+ButtonCorner1.Parent = DesyncButton
+
+local desyncActive = false
+
+local function DENSYC()
+	local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local hrp = character:WaitForChild("HumanoidRootPart")
+	local function enableMobileDesync()
+		local success, error = pcall(function()
+			local backpack = LocalPlayer:WaitForChild("Backpack")
+			local humanoid = character:WaitForChild("Humanoid")
+			local packages = ReplicatedStorage:WaitForChild("Packages", 5)
+			if not packages then warn("Packages not found") return false end
+			local netFolder = packages:WaitForChild("Net", 5)
+			local useItemRemote = netFolder:WaitForChild("RE/UseItem", 5)
+			local teleportRemote = netFolder:WaitForChild("RE/QuantumCloner/OnTeleport", 5)
+			if not useItemRemote or not teleportRemote then warn("Remotes not found") return false end
+
+			local toolNames = {"Quantum Cloner", "Brainrot", "brainrot"}
+			local tool
+			for _, toolName in ipairs(toolNames) do
+				tool = backpack:FindFirstChild(toolName) or character:FindFirstChild(toolName)
+				if tool then break end
+			end
+
+			if not tool then
+				for _, item in ipairs(backpack:GetChildren()) do
+					if item:IsA("Tool") then tool=item break end
+				end
+			end
+
+			if tool and tool.Parent==backpack then
+				humanoid:EquipTool(tool)
+				task.wait(0.5)
+			end
+
+			if setfflag then setfflag("WorldStepMax", "-9999999999") end
+			task.wait(0.2)
+			useItemRemote:FireServer()
+			task.wait(1)
+			teleportRemote:FireServer()
+			task.wait(2)
+			if setfflag then setfflag("WorldStepMax", "-1") end
+			return true
+		end)
+		if not success then
+			warn("Error activating desync: " .. tostring(error))
+			return false
+		end
+		return success
+	end
+
+	local function disableMobileDesync()
+		pcall(function()
+			if setfflag then setfflag("WorldStepMax", "-1") end
+		end)
+	end
+
+	local success = enableMobileDesync()
+	if success then
+		LocalPlayer.CharacterAdded:Connect(function()
+			disableMobileDesync()
+		end)
+	end
+end
+
+DesyncButton.MouseButton1Click:Connect(function()
+	if not desyncActive then
+		desyncActive = true
+		setButtonColor(DesyncButton, ACTIVE_COLOR)
+		DENSYC()
+	else
+		desyncActive = false
+		setButtonColor(DesyncButton, NORMAL_COLOR)
+		pcall(function()
+			if setfflag then setfflag("WorldStepMax","-1") end
+		end)
+	end
+end)
+
+--================== INF JUMP ==================--
+local InfJumpButton = Instance.new("TextButton")
+InfJumpButton.Parent = MainFrame
+InfJumpButton.BackgroundColor3 = NORMAL_COLOR
+InfJumpButton.Position = UDim2.new(0.05, 0, 0.28, 0)
+InfJumpButton.Size = UDim2.new(0.9, 0, 0, 40)
+InfJumpButton.Font = Enum.Font.Arcade
+InfJumpButton.Text = "Inf JUMP"
+InfJumpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+InfJumpButton.TextScaled = false
+InfJumpButton.TextSize = 18
+InfJumpButton.TextStrokeTransparency = 0.5
+
+local ButtonCorner2 = Instance.new("UICorner")
+ButtonCorner2.CornerRadius = UDim.new(0, 10)
+ButtonCorner2.Parent = InfJumpButton
+
+local infJumpActive = false
+local gravForce
+local jumpConn
+
+local function toggleInfJump()
+	infJumpActive = not infJumpActive
+
+	if infJumpActive then
+		if not gravForce then
+			gravForce = Instance.new("VectorForce")
+			gravForce.Attachment0 = Instance.new("Attachment", hrp)
+			gravForce.RelativeTo = Enum.ActuatorRelativeTo.World
+			gravForce.Force = Vector3.new(0, Workspace.Gravity * hrp.AssemblyMass * 0.8, 0)
+			gravForce.Parent = hrp
+		end
+
+		jumpConn = UIS.JumpRequest:Connect(function()
+			if hrp then
+				local v = hrp.AssemblyLinearVelocity
+				hrp.AssemblyLinearVelocity = Vector3.new(v.X, 40, v.Z)
+			end
+		end)
+
+		setButtonColor(InfJumpButton, ACTIVE_COLOR)
+	else
+		if gravForce then gravForce:Destroy() gravForce = nil end
+		if jumpConn then jumpConn:Disconnect() jumpConn = nil end
+		setButtonColor(InfJumpButton, NORMAL_COLOR)
+	end
+end
+
+InfJumpButton.MouseButton1Click:Connect(toggleInfJump)
+
+--================== FLOATWALK ==================--
+local FloatButton = Instance.new("TextButton")
+FloatButton.Parent = MainFrame
+FloatButton.BackgroundColor3 = NORMAL_COLOR
+FloatButton.Position = UDim2.new(0.05, 0, 0.44, 0)
+FloatButton.Size = UDim2.new(0.9, 0, 0, 40)
+FloatButton.Font = Enum.Font.Arcade
+FloatButton.Text = "Floatwalk"
+FloatButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FloatButton.TextScaled = false
+FloatButton.TextSize = 18
+FloatButton.TextStrokeTransparency = 0.5
+
+local FloatCorner = Instance.new("UICorner")
+FloatCorner.CornerRadius = UDim.new(0, 10)
+FloatCorner.Parent = FloatButton
+
+local floatActive = false
+local floatConn
+
+local function toggleFloat()
+	floatActive = not floatActive
+	if floatActive then
+		floatConn = RunService.Heartbeat:Connect(function()
+			if hrp then
+				local v = hrp.AssemblyLinearVelocity
+				hrp.AssemblyLinearVelocity = Vector3.new(v.X, 25, v.Z)
+			end
+		end)
+		setButtonColor(FloatButton, ACTIVE_COLOR)
+	else
+		if floatConn then
+			floatConn:Disconnect()
+			floatConn = nil
+		end
+		setButtonColor(FloatButton, NORMAL_COLOR)
+	end
+end
+
+FloatButton.MouseButton1Click:Connect(toggleFloat)
+
+--================== MISC ==================--
+local MiscLabel = Instance.new("TextLabel")
+MiscLabel.Parent = MainFrame
+MiscLabel.BackgroundTransparency = 1
+MiscLabel.Position = UDim2.new(0, 0, 0.60, 0) -- Pequeno espaço abaixo do Floatwalk
+MiscLabel.Size = UDim2.new(1, 0, 0, 15) -- Pequeno
+MiscLabel.Font = Enum.Font.Arcade -- Pixel-like font
+MiscLabel.Text = "----------Misc----------"
+MiscLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+MiscLabel.TextScaled = false
+MiscLabel.TextSize = 14
+MiscLabel.TextStrokeTransparency = 0.5
+MiscLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+--================== ESP ALL ==================--
+local ESPButton = Instance.new("TextButton")
+ESPButton.Parent = MainFrame
+ESPButton.BackgroundColor3 = NORMAL_COLOR
+ESPButton.Position = UDim2.new(0.05, 0, 0.68, 0)
+ESPButton.Size = UDim2.new(0.9, 0, 0, 30)
+ESPButton.Font = Enum.Font.Arcade
+ESPButton.Text = "ESP All"
+ESPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ESPButton.TextScaled = false
+ESPButton.TextSize = 16
+ESPButton.TextStrokeTransparency = 0.5
+local ESPCorner = Instance.new("UICorner")
+ESPCorner.CornerRadius = UDim.new(0, 10)
+ESPCorner.Parent = ESPButton
+
+local ESPActive = false
+local espHighlights = {}
+local espNames = {}
+
+-- Cria highlight e nome para um personagem
+local function createESP(char)
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    
+    -- Highlight
+    local highlight = Instance.new("Highlight")
+    highlight.Adornee = char
+    highlight.FillColor = ACTIVE_COLOR
+    highlight.OutlineColor = ACTIVE_COLOR
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = char
+    table.insert(espHighlights, highlight)
+    
+    -- Nome acima da cabeça
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 100, 0, 50)
+    billboard.Adornee = char:FindFirstChild("Head")
+    billboard.AlwaysOnTop = true
+    billboard.Parent = char
+
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Size = UDim2.new(1,0,1,0)
+    nameLabel.Font = Enum.Font.Arcade
+    nameLabel.Text = char.Name
+    nameLabel.TextColor3 = ACTIVE_COLOR
+    nameLabel.TextScaled = true
+    nameLabel.TextStrokeTransparency = 0.5
+    nameLabel.Parent = billboard
+
+    table.insert(espNames, {billboard, nameLabel})
+end
+
+-- Ativa ESP para todos os jogadores
+local function toggleESP()
+    ESPActive = not ESPActive
+    if ESPActive then
+        setButtonColor(ESPButton, ACTIVE_COLOR)
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character then
+                createESP(plr.Character)
+            end
+        end
+        -- Atualiza novos personagens que entrarem
+        Players.PlayerAdded:Connect(function(plr)
+            plr.CharacterAdded:Connect(function(char)
+                if ESPActive then
+                    createESP(char)
+                end
+            end)
+        end)
+    else
+        setButtonColor(ESPButton, NORMAL_COLOR)
+        -- Remove tudo
+        for _, hl in ipairs(espHighlights) do
+            hl:Destroy()
+        end
+        espHighlights = {}
+        for _, data in ipairs(espNames) do
+            if data[1] then data[1]:Destroy() end
+        end
+        espNames = {}
+    end
+end
+
+ESPButton.MouseButton1Click:Connect(toggleESP)
+ 
+-- Reset ao respawn
+LocalPlayer.CharacterAdded:Connect(function()
+	infJumpActive = false
+	floatActive = false
+	desyncActive = false
+
+	if gravForce then gravForce:Destroy() gravForce = nil end
+	if jumpConn then jumpConn:Disconnect() jumpConn = nil end
+	if floatConn then floatConn:Disconnect() floatConn = nil end
+
+	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	hrp = char:WaitForChild("HumanoidRootPart")
+
+	setButtonColor(InfJumpButton, NORMAL_COLOR)
+	setButtonColor(FloatButton, NORMAL_COLOR)
+	setButtonColor(DesyncButton, NORMAL_COLOR)
+end)
