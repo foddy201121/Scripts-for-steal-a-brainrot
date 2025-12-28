@@ -1,0 +1,31 @@
+-- Place this LocalScript inside a ScreenGui
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage") -- Assuming tools are here
+local gui = script.Parent
+
+-- Create a simple button
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 200, 0, 50)
+button.Position = UDim2.new(0.5, -100, 0.5, -25)
+button.Text = "Test"
+button.Parent = gui
+
+-- Function to equip tools
+local function equipTools()
+    local toolsToEquip = {"Quantom Cloner", "Blackhole Slap"}
+
+    for _, toolName in ipairs(toolsToEquip) do
+        local tool = ReplicatedStorage:FindFirstChild(toolName)
+        if tool then
+            -- Clone the tool to the player's backpack
+            local clone = tool:Clone()
+            clone.Parent = player.Backpack
+        else
+            warn(toolName .. " not found in ReplicatedStorage")
+        end
+    end
+end
+
+-- Connect button click
+button.MouseButton1Click:Connect(equipTools)
