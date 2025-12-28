@@ -9,65 +9,119 @@ local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 
 -- Default settings
-local speedBoost = 16
+local defaultSpeed = 30
+local speedBoost = defaultSpeed
 local customGravity = Workspace.Gravity -- default is 196.2
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Create Frame
+-- Create main Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 150)
-frame.Position = UDim2.new(0.5, -150, 0.5, -75)
-frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+frame.Size = UDim2.new(0, 300, 0, 180)
+frame.Position = UDim2.new(0.5, -150, 0.5, -90)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.BorderSizePixel = 0
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.Visible = true
 frame.Parent = screenGui
 
--- Create SpeedBoost TextBox
+-- Rounded corners
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = frame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.Text = "Speed & Gravity Boost"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 18
+title.Parent = frame
+
+-- SpeedBoost TextBox
 local speedBox = Instance.new("TextBox")
-speedBox.Size = UDim2.new(0, 200, 0, 50)
-speedBox.Position = UDim2.new(0, 50, 0, 20)
+speedBox.Size = UDim2.new(0, 200, 0, 40)
+speedBox.Position = UDim2.new(0, 50, 0, 50)
 speedBox.PlaceholderText = "Enter Speed Boost"
 speedBox.Text = tostring(speedBoost)
 speedBox.ClearTextOnFocus = false
+speedBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+speedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedBox.Parent = frame
 
--- Create Gravity TextBox
+local speedCorner = Instance.new("UICorner")
+speedCorner.CornerRadius = UDim.new(0, 6)
+speedCorner.Parent = speedBox
+
+-- Gravity TextBox
 local gravityBox = Instance.new("TextBox")
-gravityBox.Size = UDim2.new(0, 200, 0, 50)
-gravityBox.Position = UDim2.new(0, 50, 0, 80)
+gravityBox.Size = UDim2.new(0, 200, 0, 40)
+gravityBox.Position = UDim2.new(0, 50, 0, 100)
 gravityBox.PlaceholderText = "Enter Gravity"
 gravityBox.Text = tostring(customGravity)
 gravityBox.ClearTextOnFocus = false
+gravityBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+gravityBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 gravityBox.Parent = frame
 
--- Create StealBoost Button
+local gravityCorner = Instance.new("UICorner")
+gravityCorner.CornerRadius = UDim.new(0, 6)
+gravityCorner.Parent = gravityBox
+
+-- StealBoost Button
 local boostButton = Instance.new("TextButton")
 boostButton.Size = UDim2.new(0, 200, 0, 40)
-boostButton.Position = UDim2.new(0, 50, 0, 130)
+boostButton.Position = UDim2.new(0, 50, 0, 150)
 boostButton.Text = "StealBoost"
 boostButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+boostButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+boostButton.Font = Enum.Font.SourceSansBold
+boostButton.TextSize = 18
 boostButton.Parent = frame
 
--- Function to apply speed boost and gravity
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 6)
+buttonCorner.Parent = boostButton
+
+-- Toggle switch
+local toggleSwitch = Instance.new("TextButton")
+toggleSwitch.Size = UDim2.new(0, 50, 0, 25)
+toggleSwitch.Position = UDim2.new(1, -60, 0, 10)
+toggleSwitch.Text = "Hide"
+toggleSwitch.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+toggleSwitch.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleSwitch.Font = Enum.Font.SourceSansBold
+toggleSwitch.TextSize = 14
+toggleSwitch.Parent = frame
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 12)
+toggleCorner.Parent = toggleSwitch
+
+-- Toggle function
+toggleSwitch.MouseButton1Click:Connect(function()
+    frame.Visible = not frame.Visible
+    toggleSwitch.Text = frame.Visible and "Hide" or "Show"
+end)
+
+-- Apply speed boost and gravity
 local function applyBoost()
     local inputSpeed = tonumber(speedBox.Text)
     local inputGravity = tonumber(gravityBox.Text)
 
-    if inputSpeed then
-        humanoid.WalkSpeed = inputSpeed
-    end
-
-    if inputGravity then
-        Workspace.Gravity = inputGravity
-    end
+    humanoid.WalkSpeed = inputSpeed or defaultSpeed
+    Workspace.Gravity = inputGravity or 196.2
 end
 
--- Connect button click
+-- Connect button
 boostButton.MouseButton1Click:Connect(applyBoost)
 
--- Optional: continuously apply in case of physics reset
+-- Continuously enforce values (optional)
 RunService.RenderStepped:Connect(function()
-    humanoid.WalkSpeed = tonumber(speedBox.Text) or 16
+    humanoid.WalkSpeed = tonumber(speedBox.Text) or defaultSpeed
     Workspace.Gravity = tonumber(gravityBox.Text) or 196.2
 end)
