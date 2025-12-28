@@ -1,0 +1,38 @@
+-- LocalScript
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+local normalSpeed = humanoid.WalkSpeed -- store original speed
+local boostedSpeed = 27
+local speedBoostEnabled = false
+
+-- Function to toggle speed boost
+local function toggleSpeedBoost()
+    speedBoostEnabled = not speedBoostEnabled
+    if speedBoostEnabled then
+        humanoid.WalkSpeed = boostedSpeed
+        print("Speed Boost Enabled!")
+    else
+        humanoid.WalkSpeed = normalSpeed
+        print("Speed Boost Disabled!")
+    end
+end
+
+-- Example: Toggle speed boost when the player presses "F"
+local UserInputService = game:GetService("UserInputService")
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.F then
+        toggleSpeedBoost()
+    end
+end)
+
+-- Optional: Reset speed if character respawns
+player.CharacterAdded:Connect(function(char)
+    character = char
+    humanoid = character:WaitForChild("Humanoid")
+    humanoid.WalkSpeed = speedBoostEnabled and boostedSpeed or normalSpeed
+end)
