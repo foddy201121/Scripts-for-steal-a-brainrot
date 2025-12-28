@@ -13,13 +13,12 @@ button.Position = UDim2.new(0, 20, 0, 200)
 button.Text = "Lagger"
 button.TextScaled = true
 button.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-button.TextColor3 = Color3.new(1,1,1)
+button.TextColor3 = Color3.new(1, 1, 1)
 button.Parent = gui
 
--- Tool names
+-- Tool list (Ban Hammer removed)
 local toolNames = {
 	"Blackhole Slap",
-	"Ban Hammer",
 	"Slap",
 	"Gold Slap",
 	"Diamond Slap",
@@ -33,12 +32,16 @@ local toolNames = {
 	"Quantum Cloner"
 }
 
-local used = false
+local ran = false
 
 button.MouseButton1Click:Connect(function()
-	if used then return end -- prevent running twice
-	used = true
+	if ran then return end
+	ran = true
+
+	-- Optional: disable button visually
+	button.AutoButtonColor = false
 	button.Text = "Running..."
+	button.BackgroundTransparency = 0.3
 
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:WaitForChild("Humanoid")
@@ -48,14 +51,16 @@ button.MouseButton1Click:Connect(function()
 		local tool = backpack:FindFirstChild(name) or character:FindFirstChild(name)
 		if tool and tool:IsA("Tool") then
 			humanoid:EquipTool(tool)
-			task.wait() -- small yield so Roblox registers equips
+			task.wait()
 		end
 	end
 
-	-- Run the code ONCE
+	-- Fire RemoteEvent ONCE
 	pcall(function()
 		ReplicatedStorage.Packages.Net["RE/UseItem"]:FireServer()
 	end)
 
-	button.Text = "Done"
+	-- Optional: remove button after running
+	task.wait(0.2)
+	button:Destroy()
 end)
