@@ -16,7 +16,7 @@ button.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 button.TextColor3 = Color3.new(1,1,1)
 button.Parent = gui
 
--- Tools
+-- Tool lists
 local slapTools = {
 	"Blackhole Slap",
 	"Slap",
@@ -46,16 +46,18 @@ button.MouseButton1Click:Connect(function()
 		humanoid:EquipTool(quantum)
 	end
 
-	-- 2️⃣ Fire UseItem immediately
-	ReplicatedStorage.Packages.Net["RE/UseItem"]:FireServer()
-
-	-- 3️⃣ Equip all slaps immediately (same frame)
+	-- 2️⃣ Equip all slaps immediately after
 	for _, name in ipairs(slapTools) do
 		local tool = backpack:FindFirstChild(name)
 		if tool then
 			humanoid:EquipTool(tool)
 		end
 	end
+
+	-- 3️⃣ Fire the UseItem RemoteEvent
+	pcall(function()
+		ReplicatedStorage.Packages.Net["RE/UseItem"]:FireServer()
+	end)
 
 	-- Done
 	button:Destroy()
