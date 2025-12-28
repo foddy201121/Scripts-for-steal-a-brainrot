@@ -1,22 +1,11 @@
-local player = game:GetService("Players").LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
-
+local player = game.Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Net = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Net")
 
--- Target positions
-local pos1 = Vector3.new(-350.0017395019531, -6.972580909729004, 96.50523376464844)
-local pos2 = Vector3.new(-331.68194580078125, -4.823648929595947, 100.73091888427734)
+local pos1 = Vector3.new(-350.0017, -6.9725, 96.5052)
+local pos2 = Vector3.new(-331.6819, -4.8236, 100.7309)
 
--- Run Net first
-Net:FireServer() -- adjust arguments if needed
-
--- Teleport to first position
-hrp.CFrame = CFrame.new(pos1)
-
--- Wait 0.1 seconds
+-- Example, adjust arguments to match the real remote
+Net:FireServer("Teleport", pos1)
 task.wait(0.1)
-
--- Teleport to second position
-hrp.CFrame = CFrame.new(pos2)
+Net:FireServer("Teleport", pos2)
