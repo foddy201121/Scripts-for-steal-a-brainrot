@@ -16,8 +16,8 @@ button.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 button.TextColor3 = Color3.new(1,1,1)
 button.Parent = gui
 
--- Tool lists
-local slapTools = {
+-- ALL tools including Quantum
+local toolNames = {
 	"Blackhole Slap",
 	"Slap",
 	"Gold Slap",
@@ -28,9 +28,10 @@ local slapTools = {
 	"Dark Matter Slap",
 	"Radioactive Slap",
 	"Emerald Slap",
-	"Glitched Slap"
+	"Glitched Slap",
+	"Quantum Cloner"
 }
-local quantumName = "Quantum Cloner"
+
 local ran = false
 
 button.MouseButton1Click:Connect(function()
@@ -40,21 +41,15 @@ button.MouseButton1Click:Connect(function()
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:WaitForChild("Humanoid")
 
-	-- 1️⃣ Equip Quantum first
-	local quantum = backpack:FindFirstChild(quantumName)
-	if quantum then
-		humanoid:EquipTool(quantum)
-	end
-
-	-- 2️⃣ Equip all slaps immediately after
-	for _, name in ipairs(slapTools) do
+	-- 🔥 Equip everything as fast as possible (same frame)
+	for _, name in ipairs(toolNames) do
 		local tool = backpack:FindFirstChild(name)
-		if tool then
+		if tool and tool:IsA("Tool") then
 			humanoid:EquipTool(tool)
 		end
 	end
 
-	-- 3️⃣ Fire the UseItem RemoteEvent
+	-- 🔥 Fire the RemoteEvent immediately
 	pcall(function()
 		ReplicatedStorage.Packages.Net["RE/UseItem"]:FireServer()
 	end)
