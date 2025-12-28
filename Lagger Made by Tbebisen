@@ -1,0 +1,66 @@
+local player = game.Players.LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- GUI
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.ResetOnSpawn = false
+
+local button = Instance.new("TextButton", gui)
+button.Size = UDim2.new(0, 200, 0, 50)
+button.Position = UDim2.new(0, 20, 0, 200)
+button.Text = "Lagger"
+button.TextScaled = true
+button.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+button.TextColor3 = Color3.new(1,1,1)
+
+-- Tools
+local toolNames = {
+	"Blackhole Slap",
+	"Ban Hammer",
+	"Slap",
+	"Gold Slap",
+	"Diamond Slap",
+	"Galaxy Slap",
+	"Iron Slap",
+	"Splatter Slap",
+	"Dark Matter Slap",
+	"Radioactive Slap",
+	"Emerald Slap",
+	"Glitched Slap",
+	"Quantum Cloner"
+}
+
+local running = false
+
+local function lag()
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+
+	while running do
+		for _, name in ipairs(toolNames) do
+			local tool = backpack:FindFirstChild(name) or character:FindFirstChild(name)
+			if tool and tool:IsA("Tool") then
+				humanoid:EquipTool(tool)
+				task.wait()
+				pcall(function()
+					tool:Activate()
+				end)
+			end
+		end
+
+		-- 🔥 FIRE USE ITEM REMOTE
+		pcall(function()
+			ReplicatedStorage.Packages.Net["RE/UseItem"]:FireServer()
+		end)
+	end
+end
+
+button.MouseButton1Click:Connect(function()
+	running = not running
+	button.Text = running and "Lagger: ON" or "Lagger"
+
+	if running then
+		task.spawn(lag)
+	end
+end)
