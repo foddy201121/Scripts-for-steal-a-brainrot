@@ -16,8 +16,8 @@ button.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 button.TextColor3 = Color3.new(1, 1, 1)
 button.Parent = gui
 
--- Tool list (Ban Hammer removed)
-local toolNames = {
+-- Tools WITHOUT Quantum
+local slapTools = {
 	"Blackhole Slap",
 	"Slap",
 	"Gold Slap",
@@ -28,39 +28,45 @@ local toolNames = {
 	"Dark Matter Slap",
 	"Radioactive Slap",
 	"Emerald Slap",
-	"Glitched Slap",
-	"Quantum Cloner"
+	"Glitched Slap"
 }
 
+local quantumName = "Quantum Cloner"
 local ran = false
 
 button.MouseButton1Click:Connect(function()
 	if ran then return end
 	ran = true
-
-	-- Optional: disable button visually
-	button.AutoButtonColor = false
 	button.Text = "Running..."
-	button.BackgroundTransparency = 0.3
 
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:WaitForChild("Humanoid")
 
-	-- Equip tools ONCE
-	for _, name in ipairs(toolNames) do
-		local tool = backpack:FindFirstChild(name) or character:FindFirstChild(name)
-		if tool and tool:IsA("Tool") then
+	-- 1️⃣ Equip ALL slaps first
+	for _, name in ipairs(slapTools) do
+		local tool = backpack:FindFirstChild(name)
+		if tool then
 			humanoid:EquipTool(tool)
-			task.wait()
+			task.wait(0.05)
 		end
 	end
 
-	-- Fire RemoteEvent ONCE
+	-- 2️⃣ Small delay so server registers equips
+	task.wait(0.2)
+
+	-- 3️⃣ Equip Quantum LAST
+	local quantum = backpack:FindFirstChild(quantumName)
+	if quantum then
+		humanoid:EquipTool(quantum)
+	end
+
+	-- 4️⃣ Fire UseItem ONCE (this triggers the clone)
+	task.wait(0.05)
 	pcall(function()
 		ReplicatedStorage.Packages.Net["RE/UseItem"]:FireServer()
 	end)
 
-	-- Optional: remove button after running
+	-- Done
 	task.wait(0.2)
 	button:Destroy()
 end)
