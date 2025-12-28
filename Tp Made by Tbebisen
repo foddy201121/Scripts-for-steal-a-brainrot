@@ -1,4 +1,12 @@
-local player = game.Players.LocalPlayer
+-- Wait for LocalPlayer and PlayerGui
+local player = game:GetService("Players").LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Wait for character and HumanoidRootPart
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+-- Wait for ReplicatedStorage and Net
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Net = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Net")
 
@@ -10,7 +18,7 @@ local pos2 = Vector3.new(-331.68194580078125, -4.823648929595947, 100.7309188842
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "TpGui"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.Parent = playerGui
 
 -- Create Button
 local button = Instance.new("TextButton")
@@ -27,11 +35,11 @@ button.MouseButton1Click:Connect(function()
     Net:FireServer() -- adjust arguments if needed
 
     -- Teleport to first position
-    player.Character.HumanoidRootPart.CFrame = CFrame.new(pos1)
+    hrp.CFrame = CFrame.new(pos1)
 
     -- Wait 0.1 seconds
     task.wait(0.1)
 
     -- Teleport to second position
-    player.Character.HumanoidRootPart.CFrame = CFrame.new(pos2)
+    hrp.CFrame = CFrame.new(pos2)
 end)
