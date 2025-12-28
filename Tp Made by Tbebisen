@@ -1,12 +1,7 @@
--- Wait for LocalPlayer and PlayerGui
 local player = game:GetService("Players").LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-
--- Wait for character and HumanoidRootPart
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp = character:WaitForChild("HumanoidRootPart")
 
--- Wait for ReplicatedStorage and Net
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Net = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Net")
 
@@ -14,32 +9,14 @@ local Net = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Net")
 local pos1 = Vector3.new(-350.0017395019531, -6.972580909729004, 96.50523376464844)
 local pos2 = Vector3.new(-331.68194580078125, -4.823648929595947, 100.73091888427734)
 
--- Create ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "TpGui"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = playerGui
+-- Run Net first
+Net:FireServer() -- adjust arguments if needed
 
--- Create Button
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(0, 200, 0, 50)
-button.Position = UDim2.new(0.5, -100, 0.5, -25) -- center of screen
-button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-button.Text = "Tp"
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.Parent = screenGui
+-- Teleport to first position
+hrp.CFrame = CFrame.new(pos1)
 
--- Button click logic
-button.MouseButton1Click:Connect(function()
-    -- Run Net first
-    Net:FireServer() -- adjust arguments if needed
+-- Wait 0.1 seconds
+task.wait(0.1)
 
-    -- Teleport to first position
-    hrp.CFrame = CFrame.new(pos1)
-
-    -- Wait 0.1 seconds
-    task.wait(0.1)
-
-    -- Teleport to second position
-    hrp.CFrame = CFrame.new(pos2)
-end)
+-- Teleport to second position
+hrp.CFrame = CFrame.new(pos2)
