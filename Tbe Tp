@@ -1,0 +1,139 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- ================= STATE =================
+
+local savedCFrame = nil
+local tpEnabled = false
+
+local markerPart
+local beam
+local attachment0
+local attachment1
+
+-- ================= GUI =================
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = playerGui
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 220, 0, 140) -- increased height to fit title
+Frame.Position = UDim2.new(0.05, 0, 0.5, -70)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+Instance.new("UICorner", Frame)
+
+-- Title / Name
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -20, 0, 30)
+Title.Position = UDim2.new(0, 10, 0, 5)
+Title.BackgroundTransparency = 1
+Title.Text = "TBE"
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 22
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Parent = Frame
+
+-- Indicator
+local Indicator = Instance.new("Frame")
+Indicator.Size = UDim2.new(0, 16, 0, 16)
+Indicator.Position = UDim2.new(1, -26, 0, 102) -- adjusted for new title
+Indicator.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+Indicator.Parent = Frame
+Instance.new("UICorner", Indicator).CornerRadius = UDim.new(1, 0)
+
+-- Set Pos button
+local SetPos = Instance.new("TextButton")
+SetPos.Size = UDim2.new(1, -20, 0, 40)
+SetPos.Position = UDim2.new(0, 10, 0, 40)
+SetPos.Text = "Set Pos"
+SetPos.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SetPos.TextColor3 = Color3.new(1, 1, 1)
+SetPos.Parent = Frame
+Instance.new("UICorner", SetPos)
+
+-- TP Toggle button
+local TPButton = Instance.new("TextButton")
+TPButton.Size = UDim2.new(1, -40, 0, 40)
+TPButton.Position = UDim2.new(0, 10, 0, 85)
+TPButton.Text = "TP"
+TPButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+TPButton.TextColor3 = Color3.new(1, 1, 1)
+TPButton.Parent = Frame
+Instance.new("UICorner", TPButton)
+
+-- ================= MARKER =================
+
+local function createMarker(pos)
+	if markerPart then markerPart:Destroy() end
+
+	markerPart = Instance.new("Part")
+	markerPart.Size = Vector3.new(0.6, 0.6, 0.6)
+	markerPart.Material = Enum.Material.Neon
+	markerPart.Color = Color3.fromRGB(0, 255, 0)
+	markerPart.Anchored = true
+	markerPart.CanCollide = false
+	markerPart.Position = pos
+	markerPart.Parent = workspace
+
+	attachment0 = Instance.new("Attachment", markerPart)
+
+	if beam then beam:Destroy() end
+	beam = Instance.new("Beam")
+	beam.Width0 = 0.08
+	beam.Width1 = 0.08
+	beam.Color = ColorSequence.new(Color3.fromRGB(0, 255, 0))
+	beam.FaceCamera = true
+	beam.Attachment0 = attachment0
+	beam.Parent = markerPart
+end
+
+-- ================= GUI LOGIC =================
+
+SetPos.MouseButton1Click:Connect(function()
+	local char = player.Character
+	if char and char:FindFirstChild("HumanoidRootPart") then
+		savedCFrame = char.HumanoidRootPart.CFrame
+		createMarker(char.HumanoidRootPart.Position)
+	end
+end)
+
+TPButton.MouseButton1Click:Connect(function()
+	tpEnabled = not tpEnabled
+	Indicator.BackgroundColor3 = tpEnabled
+		and Color3.fromRGB(0, 255, 0)
+		or Color3.fromRGB(120, 120, 120)
+end)
+
+-- ================= BEAM UPDATE =================
+
+RunService.RenderStepped:Connect(function()
+	local char = player.Character
+	if markerPart and beam and char and char:FindFirstChild("HumanoidRootPart") then
+		if not attachment1 or attachment1.Parent ~= char.HumanoidRootPart then
+			attachment1 = Instance.new("Attachment", char.HumanoidRootPart)
+			beam.Attachment1 = attachment1
+		end
+	end
+end)
+
+-- ================= HOLD E / TOUCH DETECTION =================
+
+ProximityPromptService.PromptTriggered:Connect(function(prompt, triggeringPlayer)
+	if triggeringPlayer ~= player then return end
+
+	if tpEnabled and savedCFrame then
+		local char = player.Character
+		if char and char:FindFirstChild("HumanoidRootPart") then
+			char.HumanoidRootPart.CFrame = savedCFrame
+		end
+	end
+end)
