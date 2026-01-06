@@ -1,4 +1,46 @@
--- ReSpawn DeSync
+-- TBE Desync GUI Script
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TBE_Desync_GUI"
+screenGui.Parent = PlayerGui
+
+-- Create main frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 250, 0, 100)
+mainFrame.Position = UDim2.new(0.5, -125, 0.5, -50)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Title label
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+title.BorderSizePixel = 0
+title.Text = "TBE Desync"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 20
+title.Parent = mainFrame
+
+-- Button
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0.8, 0, 0, 40)
+button.Position = UDim2.new(0.1, 0, 0.5, -20)
+button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+button.BorderSizePixel = 0
+button.Text = "Activate Desync"
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 18
+button.Parent = mainFrame
+
+-- Respawn DeSync function
 local function respawn(plr)
     local rcdEnabled = false
     if gethidden then
@@ -24,6 +66,7 @@ local function respawn(plr)
     end
 end
 
+-- Main DeSync function
 local function performDeSync()
     task.spawn(function()
         pcall(function()
@@ -41,6 +84,7 @@ local function performDeSync()
         repeat task.wait() until LocalPlayer.Character
         local char = LocalPlayer.Character
         repeat task.wait() until char:FindFirstChild("HumanoidRootPart")
+        
         task.spawn(function()
             for i = 1, 6 do
                 pcall(function()
@@ -53,6 +97,7 @@ local function performDeSync()
                 task.wait(0.1)
             end
         end)
+        
         task.spawn(function()
             for i = 1, 5 do
                 pcall(function()
@@ -67,9 +112,13 @@ local function performDeSync()
                 task.wait(0.1)
             end
         end)
+        
         task.wait(0.8)
         pcall(function()
             respawn(LocalPlayer)
         end)
     end)
 end
+
+-- Connect button
+button.MouseButton1Click:Connect(performDeSync)
