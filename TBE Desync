@@ -1,65 +1,137 @@
+--==================================================
+-- STEAL A BRAINROT | DELTA GLITCH HUB
+--==================================================
+
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local lp = Players.LocalPlayer
 
--- === RESPAWN DESYNC FUNCTION ===
-local function respawn(plr)
-    local char = plr.Character
-    if not char then return end
-
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        hum:ChangeState(Enum.HumanoidStateType.Dead)
-    end
-
-    char:ClearAllChildren()
-    local fakeChar = Instance.new("Model", workspace)
-    plr.Character = fakeChar
-    task.wait()
-    plr.Character = char
-    fakeChar:Destroy()
-end
-
-local function performDeSync()
-    task.spawn(function()
-        pcall(function()
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 999999, 0)
-            end
-            task.wait(1)
-            LocalPlayer:LoadCharacter()
-        end)
-
-        repeat task.wait() until LocalPlayer.Character
-        task.wait(0.5)
-        respawn(LocalPlayer)
-    end)
-end
-
--- === UI ===
-local gui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+--====================
+-- UI SETUP
+--====================
+local gui = Instance.new("ScreenGui")
+gui.Name = "BrainrotGlitchUI"
+gui.Parent = lp:WaitForChild("PlayerGui")
 gui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 180, 0, 60)
-frame.Position = UDim2.new(0.5, -90, 0.5, -30)
-frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.Size = UDim2.new(0, 200, 0, 160)
+frame.Position = UDim2.new(0.5, -100, 0.5, -80)
+frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.Active = true
 frame.Draggable = true
 
-local corner = Instance.new("UICorner", frame)
-corner.CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 
-local btn = Instance.new("TextButton", frame)
-btn.Size = UDim2.new(1, -10, 1, -10)
-btn.Position = UDim2.new(0, 5, 0, 5)
-btn.Text = "Respawn DeSync"
-btn.Font = Enum.Font.GothamBold
-btn.TextSize = 14
-btn.BackgroundColor3 = Color3.fromRGB(110,120,250)
-btn.TextColor3 = Color3.new(1,1,1)
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.Text = "Brainrot Glitches"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+title.TextColor3 = Color3.new(1,1,1)
 
-Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+--====================
+-- BUTTON CREATOR
+--====================
+local function makeButton(text, y)
+    local btn = Instance.new("TextButton", frame)
+    btn.Size = UDim2.new(1, -20, 0, 32)
+    btn.Position = UDim2.new(0, 10, 0, y)
+    btn.Text = text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 12
+    btn.BackgroundColor3 = Color3.fromRGB(110,120,250)
+    btn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    return btn
+end
 
-btn.MouseButton1Click:Connect(function()
-    performDeSync()
+--====================
+-- FREEZE DESYNC
+--====================
+local freezeEnabled = false
+local freezeConn
+local savedCFrame
+
+local function toggleFreeze()
+    freezeEnabled = not freezeEnabled
+
+    if freezeEnabled then
+        local char = lp.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        savedCFrame = hrp.CFrame
+
+        freezeConn = RunService.Heartbeat:Connect(function()
+            pcall(function()
+                hrp.CFrame = savedCFrame
+                hrp.Velocity = Vector3.zero
+            end)
+        end)
+    else
+        if freezeConn then
+            freezeConn:Disconnect()
+            freezeConn = nil
+        end
+    end
+end
+
+--====================
+-- NOCLIP PHASE
+--====================
+local noclipEnabled = false
+
+RunService.Stepped:Connect(function()
+    if noclipEnabled and lp.Character then
+        for _, v in ipairs(lp.Character:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = false
+            end
+        end
+    end
+end)
+
+local function toggleNoclip()
+    noclipEnabled = not noclipEnabled
+end
+
+--====================
+-- SIT DESYNC
+--====================
+local function sitDesync()
+    local char = lp.Character
+    if not char then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+
+    hum.Sit = true
+    task.wait(0.1)
+    hum.Sit = false
+end
+
+--====================
+-- BUTTONS (FREEZE FIRST)
+--====================
+local freezeBtn = makeButton("Freeze Desync", 40)
+local noclipBtn = makeButton("Toggle Noclip", 80)
+local sitBtn = makeButton("Sit Desync", 120)
+
+freezeBtn.MouseButton1Click:Connect(toggleFreeze)
+noclipBtn.MouseButton1Click:Connect(toggleNoclip)
+sitBtn.MouseButton1Click:Connect(sitDesync)
+
+--====================
+-- AUTO CLEANUP ON RESET
+--====================
+lp.CharacterAdded:Connect(function()
+    freezeEnabled = false
+    noclipEnabled = false
+    if freezeConn then
+        freezeConn:Disconnect()
+        freezeConn = nil
+    end
 end)
