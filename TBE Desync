@@ -1,4 +1,6 @@
--- TBE Desync GUI Script
+-- TBE Desync LocalScript
+-- Place this LocalScript in StarterPlayerScripts or StarterGui
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -6,6 +8,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "TBE_Desync_GUI"
+screenGui.ResetOnSpawn = false
 screenGui.Parent = PlayerGui
 
 -- Create main frame
