@@ -73,18 +73,3 @@ local function performDeSync()
         end)
     end)
 end
-
-SpecialSection:CreateButton({
-    Name = "ReSpawn DeSync",
-    Callback = function()
-        performDeSync()
-        Window:Notify({Title = "ReSpawn DeSync", Content = "Executed!", Duration = 2})
-    end
-})
-SpecialSection:CreateButton({
-    Name = "Control Players UI",
-    Callback = function()
-        Window:Notify({Title = "Control Players", Content = "Loading...", Duration = 2})
-        loadstring(game:HttpGet("https://pastefy.app/CPvTIBvE/raw"))()
-    end
-})
