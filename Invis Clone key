@@ -1,0 +1,172 @@
+-- =====================================================
+-- 🔐 GITHUB WHITELIST WITH EXPIRY (NO KEY INPUT)
+-- =====================================================
+
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- 🔴 PUT YOUR RAW GITHUB URL HERE
+local WHITELIST_URL = "https://raw.githubusercontent.com/USERNAME/REPO/main/access.json"
+
+local function parseDate(dateStr)
+    local y, m, d = dateStr:match("(%d+)%-(%d+)%-(%d+)")
+    return os.time({
+        year = tonumber(y),
+        month = tonumber(m),
+        day = tonumber(d),
+        hour = 23,
+        min = 59,
+        sec = 59
+    })
+end
+
+local function checkAccess()
+    local success, response = pcall(function()
+        return HttpService:GetAsync(WHITELIST_URL)
+    end)
+
+    if not success then
+        return false, "License server unreachable"
+    end
+
+    local data = HttpService:JSONDecode(response)
+    local user = data.users[tostring(player.UserId)]
+
+    if not user or not user.expires then
+        return false, "Not licensed"
+    end
+
+    local expireTime = parseDate(user.expires)
+
+    if os.time() > expireTime then
+        return false, "Expired"
+    end
+
+    return true
+end
+
+local allowed, reason = checkAccess()
+
+if not allowed then
+    local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+    gui.Name = "LicenseExpiredGUI"
+
+    local frame = Instance.new("Frame", gui)
+    frame.Size = UDim2.new(0, 320, 0, 120)
+    frame.Position = UDim2.new(0.5, -160, 0.5, -60)
+    frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    frame.BorderSizePixel = 0
+
+    local corner = Instance.new("UICorner", frame)
+    corner.CornerRadius = UDim.new(0, 12)
+
+    local text = Instance.new("TextLabel", frame)
+    text.Size = UDim2.new(1, -20, 1, -20)
+    text.Position = UDim2.new(0, 10, 0, 10)
+    text.BackgroundTransparency = 1
+    text.TextWrapped = true
+    text.TextColor3 = Color3.fromRGB(255, 80, 80)
+    text.Font = Enum.Font.GothamBold
+    text.TextSize = 14
+    text.Text = "Your access has expired.\nPlease purchase to continue."
+
+    return
+end
+
+-- =====================================================
+-- ✅ ACCESS GRANTED — ORIGINAL SCRIPT
+-- =====================================================
+
+local playerGui = player:WaitForChild("PlayerGui")
+local character = player.Character or player.CharacterAdded:Wait()
+local backpack = player:WaitForChild("Backpack")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "EquipCloakGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 200, 0, 80)
+mainFrame.Position = UDim2.new(0.5, -100, 0.5, -40)
+mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 10)
+frameCorner.Parent = mainFrame
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 25)
+titleLabel.BackgroundColor3 = Color3.fromRGB(187, 0, 255)
+titleLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+titleLabel.Text = "TBE Scripts"
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 12
+titleLabel.BorderSizePixel = 0
+titleLabel.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = titleLabel
+
+local activateButton = Instance.new("TextButton")
+activateButton.Size = UDim2.new(1, -20, 0, 45)
+activateButton.Position = UDim2.new(0, 10, 0, 30)
+activateButton.BackgroundColor3 = Color3.fromRGB(100, 50, 200)
+activateButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+activateButton.Text = "Invis Clone"
+activateButton.Font = Enum.Font.GothamBold
+activateButton.TextSize = 16
+activateButton.BorderSizePixel = 0
+activateButton.Parent = mainFrame
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 8)
+buttonCorner.Parent = activateButton
+
+activateButton.MouseButton1Click:Connect(function()
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+
+    local invisibilityCloak = backpack:FindFirstChild("Invisibility Cloak")
+    local quantumCloner = backpack:FindFirstChild("Quantum Cloner")
+
+    if invisibilityCloak and quantumCloner then
+        humanoid:UnequipTools()
+        task.wait(0.05)
+        humanoid:EquipTool(invisibilityCloak)
+        task.wait(0.05)
+        invisibilityCloak:Activate()
+
+        activateButton.Text = "Activated!"
+        activateButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+
+        task.wait(1)
+
+        humanoid:EquipTool(quantumCloner)
+        quantumCloner:Activate()
+
+        task.wait(0.3)
+        activateButton.Text = "Invis Clone"
+        activateButton.BackgroundColor3 = Color3.fromRGB(100, 50, 200)
+    else
+        activateButton.Text = "Missing Tools!"
+        activateButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+        task.wait(1)
+        activateButton.Text = "Invis Clone"
+        activateButton.BackgroundColor3 = Color3.fromRGB(100, 50, 200)
+    end
+end)
+
+activateButton.MouseEnter:Connect(function()
+    activateButton.BackgroundColor3 = Color3.fromRGB(80, 40, 180)
+end)
+
+activateButton.MouseLeave:Connect(function()
+    activateButton.BackgroundColor3 = Color3.fromRGB(100, 50, 200)
+end)
