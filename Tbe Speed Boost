@@ -1,0 +1,146 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- ================= SPEED CORE =================
+
+local MIN_SPEED = 10
+local MAX_SPEED = 120
+local baseSpeed = 27.5
+local SPEED_ENABLED = false
+local speedConn
+
+local function GetCharacter()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char, char:WaitForChild("HumanoidRootPart"), char:WaitForChild("Humanoid")
+end
+
+local function getMoveDir()
+    local _, _, hum = GetCharacter()
+    local dir = hum.MoveDirection
+    if dir.Magnitude > 0 then
+        return Vector3.new(dir.X, 0, dir.Z).Unit
+    end
+    return Vector3.zero
+end
+
+local function startSpeed()
+    if speedConn then return end
+    speedConn = RunService.Heartbeat:Connect(function()
+        if not SPEED_ENABLED then return end
+        local _, hrp = GetCharacter()
+        local dir = getMoveDir()
+        hrp.AssemblyLinearVelocity = Vector3.new(
+            dir.X * baseSpeed,
+            hrp.AssemblyLinearVelocity.Y,
+            dir.Z * baseSpeed
+        )
+    end)
+end
+
+local function stopSpeed()
+    SPEED_ENABLED = false
+    if speedConn then
+        speedConn:Disconnect()
+        speedConn = nil
+    end
+end
+
+-- ================= GUI =================
+
+local gui = Instance.new("ScreenGui", playerGui)
+gui.ResetOnSpawn = false
+
+-- MAIN FRAME
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 220, 0, 180)
+frame.Position = UDim2.new(0.5, -110, 0.6, -90)
+frame.BackgroundColor3 = Color3.fromRGB(40, 0, 60)
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 16)
+
+-- TITLE BAR
+local titleBar = Instance.new("Frame", frame)
+titleBar.Size = UDim2.new(1, 0, 0, 36)
+titleBar.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
+Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 16)
+
+local title = Instance.new("TextLabel", titleBar)
+title.Size = UDim2.new(1, 0, 1, 0)
+title.BackgroundTransparency = 1
+title.Text = "TBE SCRIPTS"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+
+-- SPEED BUTTON
+local speedButton = Instance.new("TextButton", frame)
+speedButton.Size = UDim2.new(0, 180, 0, 48)
+speedButton.Position = UDim2.new(0.5, -90, 0, 50)
+speedButton.Text = "SPEED BOOST"
+speedButton.BackgroundColor3 = Color3.fromRGB(120, 0, 255)
+speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedButton.Font = Enum.Font.GothamBold
+speedButton.TextSize = 16
+Instance.new("UICorner", speedButton).CornerRadius = UDim.new(0, 12)
+
+-- Toggle functionality
+speedButton.MouseButton1Click:Connect(function()
+    SPEED_ENABLED = not SPEED_ENABLED
+    if SPEED_ENABLED then
+        startSpeed()
+        speedButton.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+        speedButton.Text = "ON"
+    else
+        stopSpeed()
+        speedButton.BackgroundColor3 = Color3.fromRGB(120, 0, 255)
+        speedButton.Text = "OFF"
+    end
+end)
+
+-- SPEED LABEL
+local speedLabel = Instance.new("TextLabel", frame)
+speedLabel.Size = UDim2.new(1, 0, 0, 20)
+speedLabel.Position = UDim2.new(0, 0, 0, 110)
+speedLabel.BackgroundTransparency = 1
+speedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedLabel.Font = Enum.Font.GothamBold
+speedLabel.TextSize = 16
+
+-- SPEED INPUT
+local inputBox = Instance.new("TextBox", frame)
+inputBox.Size = UDim2.new(0, 60, 0, 28)
+inputBox.Position = UDim2.new(0.5, -30, 0, 135)
+inputBox.Text = tostring(baseSpeed)
+inputBox.BackgroundColor3 = Color3.fromRGB(70, 0, 120)
+inputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputBox.Font = Enum.Font.GothamBold
+inputBox.TextSize = 16
+inputBox.ClearTextOnFocus = false
+Instance.new("UICorner", inputBox).CornerRadius = UDim.new(0, 12)
+
+-- ================= SYNC FUNCTIONS =================
+
+local function updateUIFromSpeed()
+    speedLabel.Text = "Speed: "..baseSpeed
+    inputBox.Text = tostring(baseSpeed)
+end
+
+local function setSpeed(value)
+    baseSpeed = math.clamp(math.floor(value), MIN_SPEED, MAX_SPEED)
+    updateUIFromSpeed()
+end
+
+updateUIFromSpeed()
+
+inputBox.FocusLost:Connect(function()
+    local num = tonumber(inputBox.Text)
+    if num then
+        setSpeed(num)
+    end
+end)
